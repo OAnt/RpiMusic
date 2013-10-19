@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html ng-app>
+<head>
+<title> Pi-Music </title>
+<script src="static/angular.js"></script>
+<script src="static/controller.js"></script>
+</head>
+<body>
+<div ng-controller="SongSelectionCtrl">
+    <div>
+        <div>
+            <ul>
+                <li ng-repeat="anArtist in artists" >
+                    <a href=""ng-click="getAlbums(anArtist)">{{anArtist[1]}}</a>
+
+                </li>
+            </ul>
+        </div>
+        <div>
+            <ul>
+                <li ng-repeat="anAlbum in albums"> 
+                    <a href"" ng-click="getSongs(anAlbum)">{{anAlbum[1]}}</a>
+                </li>
+            <ul>
+        </div>
+        <div>
+            <ul>
+                <li ng-repeat="aSong in songs"> 
+                    <a href"" ng-click="playSong(aSong)">{{aSong[1]}}</a>
+                </li>
+            <ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>

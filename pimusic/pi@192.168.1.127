@@ -1,0 +1,36 @@
+import pygame
+import gevent
+
+class Player(gevent.Greenlet):
+    def __init__(self):
+        gevent.Greenlet.__init__(self)
+        pygame.mixer.init()
+        self.player = pygame.mixer.music
+        self.queue = []
+        self.song_id = 0
+        self.player.set_endevent(SONG_END)
+
+    def play(self):
+        self.player.play()
+        self.song_id = self.song_id + 1
+
+    def load(self):
+        self.player.load(self.queue[self.song_id])
+
+    def next_song(self):
+        self.load()
+        self.play()
+
+    def pause(self):
+        self.player.pause()
+
+    def stop(self):
+        self.player.stop()
+
+    def add_song(self, song):
+        self.queue.append(song)
+
+    def _run(self):
+        while True:
+            if not self.player.get_busy():
+                self.next_song()

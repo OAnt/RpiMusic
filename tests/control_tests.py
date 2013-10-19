@@ -11,7 +11,7 @@ Cursor = MusicDB.cursor()
 class TestAudio(unittest.TestCase):
     def setUp(self):
         statement = "SELECT path FROM Songs WHERE Song = ? OR Song = ? OR Song = ?"
-        Cursor.execute(statement,["drowned maid", "sinistre rouge",
+        Cursor.execute(statement,["drowned maid", "sinister rouge",
                                             "jotun"])
         self.song_list = Cursor.fetchall()
         self.fifo = "/tmp/musicfifo"
@@ -23,4 +23,4 @@ class TestAudio(unittest.TestCase):
             Player.play_song(song[0])
             assert_true(Player.check_mplayer_pid())
         time.sleep(10)
-        Player.process.kill()
+        Player._quit()

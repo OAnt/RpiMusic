@@ -41,12 +41,12 @@ def index():
 def api():
     if flask.request.environ.get('wsgi.websocket'):
         ws = flask.request.environ['wsgi.websocket']
-        Player.listeners.append(ws)
-        ws.send(json.dumps("hello"))
         while True:
             if ws.socket is None:
                 return "Bye"
-            gevent.sleep()
+            else:
+                ws.send(json.dumps(Player.queue[0]))
+            gevent.sleep(1)
         #while True:
         #    try:
         #        ws.send(json.dumps(Player.message))

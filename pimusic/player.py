@@ -11,10 +11,18 @@ class MPlayerControl(object):
         self.process = None
         self.message = None
         self.listeners = []
+        self.queue = ["hello"]
 
     def start(self):
         gevent.spawn(self._read)
         gevent.spawn(self._query_pos)
+        gevent.spawn(self._queue_mgmt)
+
+    def _queue_mgmt(self):
+        while True:
+            while len(self.queue)>1:
+                self.queue.pop()
+            gevent.sleep()
 
     def _active(self):
         return self.process is not None and self.process.poll() is None
@@ -30,15 +38,8 @@ class MPlayerControl(object):
     def _read(self):
         while True:
             if self._active():
-                #print "ME READING"
                 message = self.process.stdout.readline()
-                #print "GOT A MESSSSSSSAGE", self.message
-                for listener in self.listeners:
-                    #print "Sending message %s in %s" % (message, listener)
-                    try:
-                        listener.send(json.dumps(message))
-                    except socket.error:
-                        pass  #TODO: Remove socket from listeners
+                self.queue.insert(0, message)
             gevent.sleep()
 
     def _wrapper_stdin(self, function, *args):

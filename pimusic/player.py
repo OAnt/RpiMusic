@@ -1,51 +1,70 @@
 #contols mplayer using a fifo from python
-import subprocess
-import psutil
 import os
+import json
+
+import gevent
+from gevent import subprocess, socket
+
 
 class MPlayerControl(object):
-    def __init__(self, fifo):
-        self.fifo = fifo
-        self.statedb = None
+    def __init__(self):
         self.process = None
-        os.remove(self.fifo)
-        os.mkfifo(self.fifo)
+        self.message = None
+        self.listeners = []
 
-    def check_mplayer_pid(self):
-        """Checks if an instance of mplayer is active, return True if it is
-        False otherwise
-        """
-        try:
-            ActivePlayer = psutil.Process(self.process.pid)
-            exe_path = ActivePlayer.exe
-            exe_path, process = os.path.split(exe_path)
-        except AttributeError:
-            return False
-        if process == "mplayer":
-            return True
-        else:
-            return False
+    def start(self):
+        gevent.spawn(self._read)
+        gevent.spawn(self._query_pos)
 
-    def _quit(self):
-        fifo = open(self.fifo, 'w')
-        fifo.write("quit\n")
-        fifo.close()
+    def _active(self):
+        return self.process is not None and self.process.poll() is None
 
-    def _update_fifo(self, song):
-        fifo = open(self.fifo, 'w')
-        fifo.write("loadfile '{0}' 1\n".format(song))
-        fifo.close()
+    def _query_pos(self):
+        while True:
+            if self._active():
+                self.process.stdin.write("get_time_pos\n")
+                self.process.stdin.flush()
+                gevent.sleep(1)
+            gevent.sleep()
+
+    def _read(self):
+        while True:
+            if self._active():
+                #print "ME READING"
+                message = self.process.stdout.readline()
+                #print "GOT A MESSSSSSSAGE", self.message
+                for listener in self.listeners:
+                    #print "Sending message %s in %s" % (message, listener)
+                    try:
+                        listener.send(json.dumps(message))
+                    except socket.error:
+                        pass  #TODO: Remove socket from listeners
+            gevent.sleep()
+
+    def _wrapper_stdin(self, function, *args):
+        if self._active():
+            try:
+                function(*args)
+                self.process.stdin.flush()
+            except IOError:
+                pass
+            else:
+                return
+
+    def quit(self):
+        self._wrapper_stdin(self.process.stdin.write, "quit\n")
 
     def play_song(self, song_path):
-        """Launches mplayer if not active and play song else do nothing"""
-        if not self.check_mplayer_pid():
-            args = ['mplayer', '-slave', '-input',
-                    'file={0}'.format(self.fifo),
-                    song_path.encode('utf-8')]
-            self.process = subprocess.Popen(args)
-        else:
-            self._update_fifo(song_path)
+        """Launches gmplayer if not active and play song else do nothing"""
+        song_path = song_path.encode('utf-8')
+        if self._active():
+            try:
+                self.process.stdin.write("loadfile '{0}' 1\n".format(song_path))
+                self.process.stdin.flush()
+            except IOError:
+                pass
+            else:
+                return
 
-    def add_song(self, song):
-        """adds a to mplayer's queue"""
-        pass
+        args = ['mplayer', '-slave', song_path]
+        self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)

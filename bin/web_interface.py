@@ -2,12 +2,18 @@ import threading
 import sqlite3
 import flask
 import json
+import os
+
+import gevent
+from gevent.pywsgi import WSGIServer
+from geventwebsocket.handler import WebSocketHandler
 
 import pimusic.player
 
 DATABASE = '/Users/Antoine/Documents/Pn/projects/databases/RpiPlayer.db'
 DEBUG = True
-Player = pimusic.player.MPlayerControl('/tmp/musicfifo')
+Player = pimusic.player.MPlayerControl()
+Player.start()
 
 app = flask.Flask(__name__)
 app.config.from_object(__name__)
@@ -30,6 +36,24 @@ def index():
     response = index.read()
     index.close()
     return flask.make_response(response)
+
+@app.route('/api')
+def api():
+    if flask.request.environ.get('wsgi.websocket'):
+        ws = flask.request.environ['wsgi.websocket']
+        Player.listeners.append(ws)
+        ws.send(json.dumps("hello"))
+        while True:
+            if ws.socket is None:
+                return "Bye"
+            gevent.sleep()
+        #while True:
+        #    try:
+        #        ws.send(json.dumps(Player.message))
+        #    except:
+        #        raise
+        #    gevent.sleep(1)
+    return "OK"
 
 @app.route('/music')
 def get_music():
@@ -61,6 +85,8 @@ def song_req(artist, album, song):
         json_data = flask.request.json
         song_path = json_data[4]
         Player.play_song(song_path)
+    return "OK"
 
 if __name__ == '__main__':
-    app.run(host = '0.0.0.0', port = 8000)
+    http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
+    http_server.serve_forever()

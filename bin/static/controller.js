@@ -6,7 +6,7 @@ function SongSelectionCtrl($scope, $http){
     $scope.artists = [];
     $scope.albums = [];
     $scope.songs = [];
-    
+    $scope.output = null; 
     $scope.playSong = function(songDetails) {
         var url = '/music/' + songDetails[3] + '/' + songDetails[2] + '/' + songDetails[0]
         $http.post(url, songDetails)
@@ -28,6 +28,12 @@ function SongSelectionCtrl($scope, $http){
         $http.get('/music').success(function(data) {
             $scope.artists = data;
         });
+        var ws = new WebSocket("ws://" + document.domain + ":5000/api");
+        ws.onmessage = function(msg) {
+            console.log("Received message: %s", msg.data);
+            $scope.output = JSON.parse(msg.data);
+            $scope.$apply();
+        }
     }
     init();
 }

@@ -1,38 +1,61 @@
 <!DOCTYPE html>
-<html ng-app>
+<html ng-app="myApp">
 <head>
 <title> Pi-Music </title>
-<script src="static/angular.js"></script>
-<script src="static/controller.js"></script>
+<script src="/static/angular.js"></script>
+<script src="/static/ngProgress.js"></script>
+<script src="/static/app.js"></script>
+<link rel="stylesheet" href="/static/ngProgress.css"></link>
+<link rel=stylesheet type=text/css href="/static/bootstrap.css"></link>
+<style type="text/css">
+
+.sidebar-nav{
+	padding: 9px 0;
+}
+.scrollbar{
+	overflow: auto;
+	height: auto;
+	max-height: 500px;
+}
+
+</style>
 </head>
-<body>
+<body class="jumbotron">
 
 <div ng-controller="SongSelectionCtrl">
-{{output}}
-    <div>
-        <div>
-            <ul>
-                <li ng-repeat="anArtist in artists" >
-                    <a href=""ng-click="getAlbums(anArtist)">{{anArtist[1]}}</a>
 
-                </li>
-            </ul>
-        </div>
-        <div>
-            <ul>
-                <li ng-repeat="anAlbum in albums"> 
-                    <a href"" ng-click="getSongs(anAlbum)">{{anAlbum[1]}}</a>
-                </li>
-            <ul>
-        </div>
-        <div>
-            <ul>
-                <li ng-repeat="aSong in songs"> 
-                    <a href"" ng-click="playSong(aSong)">{{aSong[1]}}</a>
-                </li>
-            <ul>
-        </div>
-    </div>
+<div class="container">
+	<div class="row">
+		<div class="col-xs-3 col-sm-3 col-md-3">
+			<div class="well sidebar-nav scrollbar">
+				<ul class="nav nav-list">
+					<li ng-repeat="anArtist in artists" >
+					<a href=""ng-click="getAlbums(anArtist)">{{anArtist[1]}}</a>
+
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-xs-3 col-sm-3 col-md-3" ng-show="albums">
+			<div class="well sidebar-nav scrollbar">
+				<ul class="nav nav-list">
+					<li ng-repeat="anAlbum in albums"> 
+					<a href="" ng-click="getSongs(anAlbum)">{{anAlbum[1]}}</a>
+					</li>
+				<ul>
+			</div>
+		</div>
+		<div class="col-xs-3 col-sm-3 col-md-3" ng-show="songs">
+			<div class="well sidebar-nav">
+				<ul class="nav nav-list scrollbar">
+					<li ng-repeat="aSong in songs"> 
+					<a href="" ng-click="playSong(aSong)">{{aSong[1]}}</a>
+					</li>
+				<ul>
+			</div>
+		</div>
+	</div>
+</div>
 </div>
 </body>
 </html>

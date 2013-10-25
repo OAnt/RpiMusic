@@ -2,7 +2,7 @@
 
 //controllers
 
-function SongSelectionCtrl($scope, $http){
+function SongSelectionCtrl($scope, $http, ngProgress){
     $scope.artists = [];
     $scope.albums = [];
     $scope.songs = [];
@@ -24,15 +24,28 @@ function SongSelectionCtrl($scope, $http){
         });
     }
 
+    var mplayerParse = function(socketOutput) {
+        switch(socketOutput.message)
+        {
+        case "ANS_PERCENT_POSITION":
+            $scope.output = socketOutput.value;
+            ngProgress.set(parseInt(socketOutput.value));
+            break;
+        default:
+            console.log("Unknown: %s", socketOutput.message);
+        }
+        $scope.$apply();
+    }
+
     var init = function () {
         $http.get('/music').success(function(data) {
             $scope.artists = data;
         });
         var ws = new WebSocket("ws://" + document.domain + ":5000/api");
         ws.onmessage = function(msg) {
+            ngProgress.start();
             console.log("Received message: %s", msg.data);
-            $scope.output = JSON.parse(msg.data);
-            $scope.$apply();
+            mplayerParse(JSON.parse(msg.data));
         }
     }
     init();

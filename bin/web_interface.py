@@ -42,17 +42,27 @@ def api():
     if flask.request.environ.get('wsgi.websocket'):
         ws = flask.request.environ['wsgi.websocket']
         Player.listeners.append(ws)
+        Player.get_metadata()
         while True:
             if ws.socket is None:
                 return "Bye"
             gevent.sleep(1)
-        #while True:
-        #    try:
-        #        ws.send(json.dumps(Player.message))
-        #    except:
-        #        raise
-        #    gevent.sleep(1)
     return "OK"
+
+@app.route('/player/pause', methods=['GET'])
+def pause_unpause():
+    Player.pause_unpause()
+    return 'done'
+
+@app.route('/player/next', methods=['GET'])
+def next_song():
+    Player.next_song()
+    return 'done'
+
+@app.route('/player/previous', methods=['GET'])
+def previous_song():
+    Player.previous_song()
+    return 'done'
 
 @app.route('/music')
 def get_music():
@@ -73,7 +83,7 @@ def artist_req(artist):
 def album_req(artist, album):
     mydata = local_db()
     if flask.request.method == 'GET':
-        statement = 'SELECT Songs.id, Song, albums.id, albums.artist_id, path FROM Songs, albums WHERE Songs.album_id = albums.id and albums.id=? and albums.artist_id=?'
+        statement = 'SELECT Songs.id, Song, albums.id, albums.artist_id FROM Songs, albums WHERE Songs.album_id = albums.id and albums.id=? and albums.artist_id=?'
         result = sql_execute(mydata.Cursor, statement, [album, artist])
         return json.dumps(result)
 
@@ -82,7 +92,9 @@ def song_req(artist, album, song):
     mydata = local_db()
     if flask.request.method == 'POST':
         json_data = flask.request.json
-        song_path = json_data[4]
+        song_id = json_data[0]
+        statement = 'SELECT path FROM Songs WHERE id=?'
+        song_path = sql_execute(mydata.Cursor, statement, [song_id])[0][0]
         Player.play_song(song_path)
     return "OK"
 

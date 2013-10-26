@@ -6,7 +6,7 @@
 <script src="/static/ngProgress.js"></script>
 <script src="/static/app.js"></script>
 <link rel="stylesheet" href="/static/ngProgress.css"></link>
-<link rel=stylesheet type=text/css href="/static/bootstrap.css"></link>
+<link rel=stylesheet type=text/css href="/static/css/bootstrap.css"></link>
 <style type="text/css">
 
 .sidebar-nav{
@@ -23,7 +23,31 @@
 <body class="jumbotron">
 
 <div ng-controller="SongSelectionCtrl">
-
+<div>
+    <button type="button" class="btn btn-default btn-lg" ng-click="prevSong()">
+        <span class="glyphicon glyphicon-step-backward"><span>
+    </button>
+    <button type="button" class="btn btn-default btn-lg" ng-click="pause_unpause()">
+        <span class="glyphicon glyphicon-pause"><span>
+    </button>
+    <button type="button" class="btn btn-default btn-lg" ng-click="nextSong()">
+        <span class="glyphicon glyphicon-step-forward"><span>
+    </button>
+</div>
+<div>
+    <div ng-show="metadata">
+        <h2>Song informations</h2>
+            <div ng-show="metadata.artist">
+                <p>{{metadata.artist}}</p>
+            </div>
+            <div ng-show="metadata.album">
+                <p>{{metadata.album}}</p>
+            </div>
+            <div ng-show="metadata.title">
+                <p>{{metadata.title}}</p>
+            </div>
+    </div>
+</div>
 <div class="container">
 	<div class="row">
 		<div class="col-xs-3 col-sm-3 col-md-3">

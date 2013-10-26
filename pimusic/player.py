@@ -2,12 +2,12 @@
 import os
 import json
 import errno
-
+import re
 import gevent
 from gevent import subprocess, socket, queue
 
 def output_parser(out_string):
-    return dict(zip(["message", "value"], out_string.strip().split("=")))
+    return dict(zip(["message", "value"], re.split('[:=]', out_string.strip().replace("'", ""), 1)))
 
 class MPlayerControl(object):
     def __init__(self):
@@ -38,7 +38,7 @@ class MPlayerControl(object):
     def _query_pos(self):
         while True:
             if self._active():
-                self.process.stdin.write("get_percent_pos\n")
+                self.process.stdin.write("pausing_keep_force get_percent_pos\n")
                 self.process.stdin.flush()
                 gevent.sleep(1)
             else:
@@ -54,10 +54,10 @@ class MPlayerControl(object):
                 raise gevent.GreenletExit
             gevent.sleep()
 
-    def _wrapper_stdin(self, function, *args):
+    def _wrapper_stdin(self, command):
         if self._active():
             try:
-                function(*args)
+                self.process.stdin.write(command)
                 self.process.stdin.flush()
             except IOError:
                 pass
@@ -65,7 +65,22 @@ class MPlayerControl(object):
                 return
 
     def quit(self):
-        self._wrapper_stdin(self.process.stdin.write, "quit\n")
+        self._wrapper_stdin("quit\n")
+
+    def get_metadata(self):
+        self._wrapper_stdin("pausing_keep_force get_meta_artist\n")
+        self._wrapper_stdin("pausing_keep_force get_meta_album\n")
+        self._wrapper_stdin("pausing_keep_force get_meta_title\n")
+
+    def next_song(self):
+        self._wrapper_stdin("pt_step 1\n")
+
+    def previous_song(self):
+        self._wrapper_stdin("pt_step -1\n")
+
+    def pause_unpause(self):
+        self._wrapper_stdin("pause\n")
+        self._wrapper_stdin("pausing_keep_force get_property pause\n")
 
     def play_song(self, song_path):
         """Launches gmplayer if not active and play song else do nothing"""

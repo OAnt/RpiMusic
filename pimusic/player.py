@@ -1,7 +1,4 @@
-#contols mplayer using a fifo from python
-import os
 import json
-import errno
 import re
 import gevent
 from gevent import subprocess, socket, queue
@@ -14,14 +11,27 @@ class MPlayerControl(object):
         self.process = None
         self.message = None
         self.listeners = []
-        self.queue = queue.Queue()
+        self.Queue = queue.Queue()
+        self.SongQueue = queue.Queue(maxsize=None)
+        self.player_launched = gevent.spawn(self._song_queue_mgmt)
+
+    def launch(self, song):
+        self.SongQueue.put(song)
+        if self.player_launched.ready:
+            self.player_launched = gevent.spawn(self._song_queue_mgmt)
+
+    def _song_queue_mgmt(self):
+        while(self.SongQueue.qsize() > 0 or self._active()):
+            if not self._active():
+                self.play_song(self.SongQueue.get()["path"])
+            gevent.sleep()
 
     def start(self):
         gevent.spawn(self._queue_mgmt)
 
     def _queue_mgmt(self):
         while True:
-            message = self.queue.get()
+            message = self.Queue.get()
             parsed_message = output_parser(message)
             keep_list = []
             for listener in self.listeners:
@@ -49,7 +59,7 @@ class MPlayerControl(object):
         while True:
             if self._active():
                 message = self.process.stdout.readline()
-                self.queue.put(message)
+                self.Queue.put(message)
             else:
                 raise gevent.GreenletExit
             gevent.sleep()

@@ -93,9 +93,10 @@ def song_req(artist, album, song):
     if flask.request.method == 'POST':
         json_data = flask.request.json
         song_id = json_data[0]
-        statement = 'SELECT path FROM Songs WHERE id=?'
-        song_path = sql_execute(mydata.Cursor, statement, [song_id])[0][0]
-        Player.play_song(song_path)
+        statement = 'SELECT song, path FROM Songs WHERE id=?'
+        song_values = sql_execute(mydata.Cursor, statement, [song_id])[0]
+        song_details = {"title": song_values[0], "path": song_values[1]}
+        Player.launch(song_details)
     return "OK"
 
 if __name__ == '__main__':

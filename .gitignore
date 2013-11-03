@@ -1,4 +1,5 @@
 *.pyc
+.DS_Store
 angular.js
 bootstrap.css
 controller.js

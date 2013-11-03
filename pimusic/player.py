@@ -13,18 +13,21 @@ class MPlayerControl(object):
         self.listeners = []
         self.Queue = queue.Queue()
         self.SongQueue = queue.Queue(maxsize=None)
-        self.player_launched = gevent.spawn(self._song_queue_mgmt)
+        self.player_launched = False
 
     def launch(self, song):
         self.SongQueue.put(song)
-        if self.player_launched.ready:
+        print self.SongQueue.qsize()
+        if not self.player_launched:
             self.player_launched = gevent.spawn(self._song_queue_mgmt)
 
     def _song_queue_mgmt(self):
+        self.player_launched = True
         while(self.SongQueue.qsize() > 0 or self._active()):
             if not self._active():
                 self.play_song(self.SongQueue.get()["path"])
-            gevent.sleep()
+            gevent.sleep(1)
+        self.player_launched = False
 
     def start(self):
         gevent.spawn(self._queue_mgmt)
@@ -32,11 +35,10 @@ class MPlayerControl(object):
     def _queue_mgmt(self):
         while True:
             message = self.Queue.get()
-            parsed_message = output_parser(message)
             keep_list = []
             for listener in self.listeners:
                 try:
-                    listener.send(json.dumps(parsed_message))
+                    listener.send(json.dumps(message))
                     keep_list.append(listener)
                 except IOError as e:
                     pass
@@ -59,7 +61,8 @@ class MPlayerControl(object):
         while True:
             if self._active():
                 message = self.process.stdout.readline()
-                self.Queue.put(message)
+                parsed_message = output_parser(message)
+                self.Queue.put(parsed_message)
             else:
                 raise gevent.GreenletExit
             gevent.sleep()

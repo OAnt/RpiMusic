@@ -6,6 +6,7 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
     $scope.songs = [];
     $scope.output = null; 
     $scope.metadata = new Object(null);
+    $scope.paused = false;
 
     $scope.playSong = function(songDetails) {
         var url = '/music/' + songDetails[3] + '/' + songDetails[2] + '/' + songDetails[0]
@@ -54,6 +55,13 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
         case "Album":
         case "ANS_META_ALBUM":
             $scope.metadata.album = socketOutput.value;
+            break;
+        case "ANS_pause":
+            if (socketOutput.value == "yes") {
+                $scope.paused = true;
+            } else {
+                $scope.paused = false;
+            }
             break;
         default:
             console.log("Unknown: %s", socketOutput.message);

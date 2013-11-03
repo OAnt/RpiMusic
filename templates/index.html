@@ -15,7 +15,7 @@
 .scrollbar{
 	overflow: auto;
 	height: auto;
-	max-height: 500px;
+	max-height: 450px;
 }
 
 </style>
@@ -23,20 +23,32 @@
 <body class="jumbotron">
 
 <div ng-controller="SongSelectionCtrl">
-<div>
-    <button type="button" class="btn btn-default btn-lg" ng-click="prevSong()">
-        <span class="glyphicon glyphicon-step-backward"><span>
-    </button>
-    <button type="button" class="btn btn-default btn-lg" ng-click="pause_unpause()">
-        <span class="glyphicon glyphicon-pause"><span>
-    </button>
-    <button type="button" class="btn btn-default btn-lg" ng-click="nextSong()">
-        <span class="glyphicon glyphicon-step-forward"><span>
-    </button>
-</div>
-<div>
+<div class="container">
+    <div ng-switch on="paused">
+        <div ng-switch-when="true">
+            <button type="button" class="btn btn-default btn-lg" ng-click="prevSong()">
+                <span class="glyphicon glyphicon-step-backward"><span>
+            </button>
+            <button type="button" class="btn btn-default btn-lg" ng-click="pause_unpause()">
+                <span class="glyphicon glyphicon-play"><span>
+            </button>
+            <button type="button" class="btn btn-default btn-lg" ng-click="nextSong()">
+                <span class="glyphicon glyphicon-step-forward"><span>
+            </button>
+        </div>
+        <div ng-switch-when="false">
+            <button type="button" class="btn btn-default btn-lg" ng-click="prevSong()">
+                <span class="glyphicon glyphicon-step-backward"><span>
+            </button>
+            <button type="button" class="btn btn-default btn-lg" ng-click="pause_unpause()">
+                <span class="glyphicon glyphicon-pause"><span>
+            </button>
+            <button type="button" class="btn btn-default btn-lg" ng-click="nextSong()">
+                <span class="glyphicon glyphicon-step-forward"><span>
+            </button>
+        </div>
+    </div>
     <div ng-show="metadata">
-        <h2>Song informations</h2>
             <div ng-show="metadata.artist">
                 <p>{{metadata.artist}}</p>
             </div>

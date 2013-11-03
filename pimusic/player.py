@@ -71,12 +71,13 @@ class MPlayerControl(object):
         self._wrapper_stdin("pausing_keep_force get_meta_artist\n")
         self._wrapper_stdin("pausing_keep_force get_meta_album\n")
         self._wrapper_stdin("pausing_keep_force get_meta_title\n")
+        self._wrapper_stdin("pausing_keep_force get_property pause\n")
 
     def next_song(self):
-        self._wrapper_stdin("pt_step 1\n")
+        self._wrapper_stdin("pausing_keep_force pt_step 1\n")
 
     def previous_song(self):
-        self._wrapper_stdin("pt_step -1\n")
+        self._wrapper_stdin("pausing_keep_force pt_step -1\n")
 
     def pause_unpause(self):
         self._wrapper_stdin("pause\n")
@@ -87,7 +88,7 @@ class MPlayerControl(object):
         song_path = song_path.encode('utf-8')
         if self._active():
             try:
-                self.process.stdin.write("loadfile '{0}' 1\n".format(song_path))
+                self.process.stdin.write("pausing_keep_force loadfile '{0}' 1\n".format(song_path))
                 self.process.stdin.flush()
             except IOError:
                 pass

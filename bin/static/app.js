@@ -7,6 +7,7 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
     $scope.output = null; 
     $scope.metadata = new Object(null);
     $scope.paused = false;
+    $scope.songList = new Object(null);
 
     $scope.playSong = function(songDetails) {
         var url = '/music/' + songDetails[3] + '/' + songDetails[2] + '/' + songDetails[0]
@@ -62,6 +63,12 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
             } else {
                 $scope.paused = false;
             }
+            break;
+        case "list":
+            $scope.songList.list = socketOutput.value;
+            break;
+        case "index":
+            $scope.songList.index = socketOutput.value;
             break;
         default:
             console.log("Unknown: %s", socketOutput.message);

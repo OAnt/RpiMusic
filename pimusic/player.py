@@ -12,20 +12,24 @@ class MPlayerControl(object):
         self.message = None
         self.listeners = []
         self.Queue = queue.Queue()
-        self.SongQueue = queue.Queue(maxsize=None)
+        self.song_list = []
         self.player_launched = False
+        self.index = 0
 
     def launch(self, song):
-        self.SongQueue.put(song)
-        print self.SongQueue.qsize()
+        self.song_list.append(song)
+        self.Queue.put({"message": "list", "value": self.song_list})
         if not self.player_launched:
+            self.index = 0
             self.player_launched = gevent.spawn(self._song_queue_mgmt)
 
     def _song_queue_mgmt(self):
         self.player_launched = True
-        while(self.SongQueue.qsize() > 0 or self._active()):
+        while(self.index < len(self.song_list) or self._active()):
             if not self._active():
-                self.play_song(self.SongQueue.get()["path"])
+                self.play_song(self.song_list[self.index]["path"])
+                self.Queue.put({"message": "index", "value": self.index})
+                self.index = self.index + 1
             gevent.sleep(1)
         self.player_launched = False
 

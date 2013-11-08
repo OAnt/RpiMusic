@@ -5,8 +5,11 @@
 <script src="/static/angular.js"></script>
 <script src="/static/ngProgress.js"></script>
 <script src="/static/app.js"></script>
+<script src="/static/angular-resource.js"></script>
+<script src="/static/angular-slider.js"></script>
 <link rel="stylesheet" href="/static/ngProgress.css"></link>
 <link rel=stylesheet type=text/css href="/static/css/bootstrap.css"></link>
+<link rel="stylesheet" href="/static/angular-slider.css"></link>
 <style type="text/css">
 
 .sidebar-nav{
@@ -24,6 +27,8 @@
 
 <div ng-controller="SongSelectionCtrl">
 <div class="container">
+    <div class="row">
+        <div class="col-xs-3 col-sm-3 col-md-3">
             <div ng-switch on="paused">
                 <div ng-switch-when="true">
                     <button type="button" class="btn btn-default btn-lg" ng-click="prevSong()">
@@ -47,6 +52,9 @@
                         <span class="glyphicon glyphicon-step-forward"><span>
                     </button>
                 </div>
+                <div>
+                    <slider floor="0" ceiling="100" step="1" precision="2" ng-model="volume"></slider>
+                </div>
             </div>
             <div ng-show="metadata">
                     <div ng-show="metadata.artist">
@@ -59,6 +67,8 @@
                         <p>{{metadata.title}}</p>
                     </div>
             </div>
+        </div>
+    </div>
 </div>
 <div class="container">
 	<div class="row">
@@ -75,21 +85,30 @@
 		<div class="col-xs-3 col-sm-3 col-md-3" ng-show="albums">
 			<div class="well sidebar-nav scrollbar">
 				<ul class="nav nav-list">
-					<li ng-repeat="anAlbum in albums"> 
+					<li ng-repeat="anAlbum in albums">
 					<a href="" ng-click="getSongs(anAlbum)">{{anAlbum[1]}}</a>
 					</li>
-				<ul>
+				</ul>
 			</div>
 		</div>
 		<div class="col-xs-3 col-sm-3 col-md-3" ng-show="songs">
 			<div class="well sidebar-nav">
 				<ul class="nav nav-list scrollbar">
-					<li ng-repeat="aSong in songs"> 
+					<li ng-repeat="aSong in songs">
 					<a href="" ng-click="playSong(aSong)">{{aSong[1]}}</a>
 					</li>
-				<ul>
+				</ul>
 			</div>
 		</div>
+        <div class="col-xs-3 col-sm-3 col-md-3" ng-show="songList.list">
+            <div class="well sidebar-nav">
+                <ul class="nav nav-list scrollbar">
+                    <li ng-repeat="aSong in songList.list">
+                        <a href="" >{{aSong.title}}</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
 	</div>
 </div>
 </div>

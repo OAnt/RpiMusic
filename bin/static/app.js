@@ -1,4 +1,4 @@
-var myApp = angular.module('myApp', ["ngProgress"]);
+var myApp = angular.module('myApp', ["ngProgress","uiSlider", "ngResource"]);
 
 myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
     $scope.artists = [];
@@ -8,6 +8,8 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
     $scope.metadata = new Object(null);
     $scope.paused = false;
     $scope.songList = new Object(null);
+    $scope.volume = 50;
+    var ws = new WebSocket("ws://" + document.domain + ":5000/api");
 
     $scope.playSong = function(songDetails) {
         var url = '/music/' + songDetails[3] + '/' + songDetails[2] + '/' + songDetails[0]
@@ -37,6 +39,11 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
     $scope.prevSong = function(){
         $http.get('/player/previous');
     }
+
+    $scope.$watch('volume', function() {
+        ws.send($scope.volume);
+        console.log($scope.volume);
+    });
 
     var mplayerParse = function(socketOutput) {
         switch(socketOutput.message)
@@ -80,7 +87,7 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
         $http.get('/music').success(function(data) {
             $scope.artists = data;
         });
-        var ws = new WebSocket("ws://" + document.domain + ":5000/api");
+
         ws.onmessage = function(msg) {
             console.log("Received message: %s", msg.data);
             mplayerParse(JSON.parse(msg.data));

@@ -43,6 +43,7 @@ def api():
         ws = flask.request.environ['wsgi.websocket']
         Player.listeners.append(ws)
         Player.get_metadata()
+        Player.get_song_list()
         while True:
             if ws.socket is None:
                 return "Bye"
@@ -63,6 +64,13 @@ def next_song():
 def previous_song():
     Player.previous_song()
     return 'done'
+
+@app.route('/player/volume', methods=['POST'])
+def set_volume():
+    if flask.request.method == 'POST':
+        json_data = flask.request.json
+        print json_data
+    #print flask.request.json
 
 @app.route('/music')
 def get_music():

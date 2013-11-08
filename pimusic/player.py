@@ -25,13 +25,14 @@ class MPlayerControl(object):
 
     def _song_queue_mgmt(self):
         self.player_launched = True
-        while(self.index < len(self.song_list) or self._active()):
+        while self.index < len(self.song_list) or self._active():
             if not self._active():
                 self.play_song(self.song_list[self.index]["path"])
                 self.Queue.put({"message": "index", "value": self.index})
                 self.index = self.index + 1
-            gevent.sleep(1)
+            gevent.sleep(0.5)
         self.player_launched = False
+        self.index = 0
 
     def start(self):
         gevent.spawn(self._queue_mgmt)
@@ -84,6 +85,9 @@ class MPlayerControl(object):
     def quit(self):
         self._wrapper_stdin("quit\n")
 
+    def get_song_list(self):
+        self.Queue.put({"message": "list", "value": self.song_list})
+
     def get_metadata(self):
         self._wrapper_stdin("pausing_keep_force get_meta_artist\n")
         self._wrapper_stdin("pausing_keep_force get_meta_album\n")
@@ -91,10 +95,11 @@ class MPlayerControl(object):
         self._wrapper_stdin("pausing_keep_force get_property pause\n")
 
     def next_song(self):
-        self._wrapper_stdin("pausing_keep_force pt_step 1\n")
+        self._wrapper_stdin("stop\n")
 
     def previous_song(self):
-        self._wrapper_stdin("pausing_keep_force pt_step -1\n")
+        self.index = self.index - 2
+        self._wrapper_stdin("stop\n")
 
     def pause_unpause(self):
         self._wrapper_stdin("pause\n")

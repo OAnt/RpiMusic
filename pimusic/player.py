@@ -107,11 +107,13 @@ class MPlayerControl(object):
         self._wrapper_stdin("pausing_keep_force get_meta_album\n")
         self._wrapper_stdin("pausing_keep_force get_meta_title\n")
         self._wrapper_stdin("pausing_keep_force get_property pause\n")
+        self._wrapper_stdin("pausing_keep_force get_property volume\n")
 
     def set_volume(self, volume):
         msg = "pausing_keep_force volume {0} 1\n".format(volume)
         self._wrapper_stdin(msg)
         self.volume = volume
+        self._wrapper_stdin("pausing_keep_force get_property volume\n")
 
     def next_song(self):
         self._wrapper_stdin("pausing_keep_force stop\n")

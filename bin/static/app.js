@@ -77,6 +77,10 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
         case "index":
             $scope.songList.index = socketOutput.value;
             break;
+        case "ANS_VOLUME":
+            if($scope.volume != socketOutput.value) {
+                $scope.volume = socketOutput.value;
+            }
         default:
             console.log("Unknown: %s", socketOutput.message);
         }

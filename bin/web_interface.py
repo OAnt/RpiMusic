@@ -79,7 +79,7 @@ def get_music():
     result = sql_execute(mydata.Cursor, statement, [])
     return json.dumps(result)
 
-@app.route('/music/<artist>', methods = ['GET'])
+@app.route('/music/<artist>', methods=['GET'])
 def artist_req(artist):
     mydata = local_db()
     if flask.request.method == 'GET':
@@ -87,7 +87,7 @@ def artist_req(artist):
         result = sql_execute(mydata.Cursor, statement, [artist])
         return json.dumps(result)
 
-@app.route('/music/<artist>/<album>', methods = ['GET'])
+@app.route('/music/<artist>/<album>', methods=['GET'])
 def album_req(artist, album):
     mydata = local_db()
     if flask.request.method == 'GET':

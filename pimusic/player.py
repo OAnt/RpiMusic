@@ -2,6 +2,7 @@ import json
 import re
 import gevent
 from gevent import subprocess, socket, queue
+from gevent import select
 
 def output_parser(out_string):
     return dict(zip(["message", "value"], re.split('[:=]', out_string.strip().replace("'", ""), 1)))
@@ -11,10 +12,13 @@ class MPlayerControl(object):
         self.process = None
         self.message = None
         self.listeners = []
+        self.websockets = {}
         self.Queue = queue.Queue()
         self.song_list = []
         self.player_launched = False
         self.index = 0
+        self.volume = "50"
+        self.switch = {"volume": self.set_volume}
 
     def launch(self, song):
         self.song_list.append(song)
@@ -29,25 +33,35 @@ class MPlayerControl(object):
             if not self._active():
                 self.play_song(self.song_list[self.index]["path"])
                 self.Queue.put({"message": "index", "value": self.index})
-                self.index = self.index + 1
+                self.index = (self.index + 1) % len(self.song_list)
             gevent.sleep(0.5)
         self.player_launched = False
         self.index = 0
 
     def start(self):
         gevent.spawn(self._queue_mgmt)
+        gevent.spawn(self._socket_reading)
+
+    def _socket_reading(self):
+        while True:
+            to_read, to_write, to_err = gevent.select.select(self.websockets.keys(), [], [], 1)
+            for ws in to_read:
+                msg = self.websockets[ws].receive()
+                if msg is not None:
+                    parsed_msg = output_parser(msg)
+                    self.switch[parsed_msg["message"]](parsed_msg["value"])
+                else:
+                    del self.websockets[ws]
 
     def _queue_mgmt(self):
         while True:
             message = self.Queue.get()
-            keep_list = []
-            for listener in self.listeners:
+            for ws in self.websockets.keys():
                 try:
-                    listener.send(json.dumps(message))
-                    keep_list.append(listener)
+                    self.websockets[ws].send(json.dumps(message))
                 except IOError as e:
                     pass
-            self.listeners = keep_list
+                    #del self.websockets[ws]
 
     def _active(self):
         return self.process is not None and self.process.poll() is None
@@ -94,11 +108,16 @@ class MPlayerControl(object):
         self._wrapper_stdin("pausing_keep_force get_meta_title\n")
         self._wrapper_stdin("pausing_keep_force get_property pause\n")
 
+    def set_volume(self, volume):
+        msg = "pausing_keep_force volume {0} 1\n".format(volume)
+        self._wrapper_stdin(msg)
+        self.volume = volume
+
     def next_song(self):
-        self._wrapper_stdin("stop\n")
+        self._wrapper_stdin("pausing_keep_force stop\n")
 
     def previous_song(self):
-        self.index = self.index - 2
+        self.index = (self.index - 2) % len(self.song_list)
         self._wrapper_stdin("stop\n")
 
     def pause_unpause(self):
@@ -119,6 +138,8 @@ class MPlayerControl(object):
 
         args = ['mplayer', '-slave', '-quiet', song_path]
         self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        self.get_metadata()
+        self.set_volume(self.volume)
         gevent.spawn(self._read)
         gevent.spawn(self._query_pos)
 

@@ -31,7 +31,7 @@ def sql_execute(cursor, statement, values):
     return result
 
 @app.route('/')
-def index():
+def get_index():
     index = open('templates/index.html')
     response = index.read()
     index.close()
@@ -41,7 +41,7 @@ def index():
 def api():
     if flask.request.environ.get('wsgi.websocket'):
         ws = flask.request.environ['wsgi.websocket']
-        Player.listeners.append(ws)
+        Player.websockets[ws.socket] = ws
         Player.get_metadata()
         Player.get_song_list()
         while True:

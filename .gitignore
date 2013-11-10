@@ -9,4 +9,6 @@ ngProgress.css
 ngProgress.js
 css
 angular-slider.css
+angular-resource.jd
 angular-slider.js
+*.swp

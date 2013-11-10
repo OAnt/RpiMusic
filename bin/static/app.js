@@ -10,9 +10,14 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
     $scope.songList = new Object(null);
     $scope.volume = 50;
     var ws = new WebSocket("ws://" + document.domain + ":5000/api");
+    ws.onopen = function() {
+        $scope.$watch('volume', function() {
+            ws.send("volume:" + parseInt($scope.volume) + "\n");
+        });
+    }
 
     $scope.playSong = function(songDetails) {
-        var url = '/music/' + songDetails[3] + '/' + songDetails[2] + '/' + songDetails[0]
+        var url = '/music/' + songDetails[3] + '/' + songDetails[2] + '/' + songDetails[0];
         $http.post(url, songDetails);
     }
 
@@ -39,11 +44,6 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
     $scope.prevSong = function(){
         $http.get('/player/previous');
     }
-
-    $scope.$watch('volume', function() {
-        ws.send($scope.volume);
-        console.log($scope.volume);
-    });
 
     var mplayerParse = function(socketOutput) {
         switch(socketOutput.message)

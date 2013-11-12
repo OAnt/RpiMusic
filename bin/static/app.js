@@ -1,6 +1,8 @@
 var myApp = angular.module('myApp', ["ngProgress","uiSlider", "ngResource"]);
 
 myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
+    $scope.autoVolumeChangeInProgress = false;
+
     $scope.artists = [];
     $scope.albums = [];
     $scope.songs = [];
@@ -8,11 +10,14 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
     $scope.metadata = new Object(null);
     $scope.paused = false;
     $scope.songList = new Object(null);
-    $scope.volume = 50;
+    $scope.volume = null;
+
     var ws = new WebSocket("ws://" + document.domain + ":5000/api");
     ws.onopen = function() {
         $scope.$watch('volume', function() {
-            ws.send("volume:" + parseInt($scope.volume) + "\n");
+            if (!$scope.autoVolumeChangeInProgress && $scope.volume != "NaN") {
+                ws.send("volume:" + parseInt($scope.volume) + "\n");
+            }
         });
     }
 
@@ -77,14 +82,16 @@ myApp.controller("SongSelectionCtrl", function ($scope, $http, ngProgress) {
         case "index":
             $scope.songList.index = socketOutput.value;
             break;
-        //case "ANS_volume":
-        //    if($scope.volume != socketOutput.value) {
-        //        $scope.volume = socketOutput.value;
-        //    }
+        case "ANS_volume":
+            $scope.autoVolumeChangeInProgress = true;
+            $scope.volume = socketOutput.value;
+            break;
         default:
             console.log("Unknown: %s", socketOutput.message);
         }
         $scope.$apply();
+
+        $scope.autoVolumeChangeInProgress = false;
     }
 
     var init = function () {

@@ -1,3 +1,5 @@
+#! /home/pi/.virtualenvs/PyPlayer/bin/python
+
 import threading
 import sqlite3
 import flask
@@ -5,13 +7,13 @@ import json
 import os
 
 import gevent
-from gevent.pywsgi import WSGIServer
+from gevent.wsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
 
 import pimusic.player
 
 DATABASE = '/home/pi/databases/musicDB.db'
-DEBUG = True
+#DEBUG = True
 Player = pimusic.player.MPlayerControl()
 Player.start()
 
@@ -32,7 +34,7 @@ def sql_execute(cursor, statement, values):
 
 @app.route('/')
 def get_index():
-    index = open('templates/index.html')
+    index = open('/home/pi/projects/RpiMusic/templates/index.html')
     response = index.read()
     index.close()
     return flask.make_response(response)
@@ -108,5 +110,6 @@ def song_req(artist, album, song):
     return "OK"
 
 if __name__ == '__main__':
+    app.debug = True
     http_server = WSGIServer(('', 5000), app, handler_class=WebSocketHandler)
     http_server.serve_forever()

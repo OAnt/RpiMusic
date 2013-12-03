@@ -16,7 +16,7 @@ class MPlayerControl(object):
         self.Queue = queue.Queue()
         self.song_list = []
         self.player_launched = False
-        self.index = 0
+        self.index = -1
         self.volume = "50"
         self.switch = {"volume": self.set_volume}
 
@@ -31,9 +31,9 @@ class MPlayerControl(object):
         self.player_launched = True
         while self.index < len(self.song_list) or self._active():
             if not self._active():
+                self.index = (self.index + 1) % len(self.song_list)
                 self.play_song(self.song_list[self.index]["path"])
                 self.Queue.put({"message": "index", "value": self.index})
-                self.index = (self.index + 1) % len(self.song_list)
             gevent.sleep(0.5)
         self.player_launched = False
         self.index = 0

@@ -12,7 +12,7 @@ from geventwebsocket.handler import WebSocketHandler
 
 import pimusic.player
 
-DATABASE = '/home/pi/databases/musicDB.db'
+DATABASE = '/home/pi/databases/usrDB3.db'
 #DEBUG = True
 Player = pimusic.player.MPlayerControl()
 Player.start()

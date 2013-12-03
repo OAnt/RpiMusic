@@ -140,8 +140,11 @@ class MPlayerControl(object):
 
         args = ['mplayer', '-slave', '-quiet', song_path]
         self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+        with open("/home/pi/var/run/mplayer.pid", 'w') as pid_file:
+            pid_file.write(str(self.process.pid))
         self.get_metadata()
         self.set_volume(self.volume)
         gevent.spawn(self._read)
         gevent.spawn(self._query_pos)
+        return
 

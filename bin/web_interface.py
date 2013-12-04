@@ -34,7 +34,7 @@ def sql_execute(cursor, statement, values):
 
 @app.route('/')
 def get_index():
-    index = open('/home/pi/projects/RpiMusic/templates/index.html')
+    index = open('/home/pi/projects/RpiMusic/static/index.html')
     response = index.read()
     index.close()
     return flask.make_response(response)

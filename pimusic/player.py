@@ -131,14 +131,14 @@ class MPlayerControl(object):
         song_path = song_path.encode('utf-8')
         if self._active():
             try:
-                self.process.stdin.write("pausing_keep_force loadfile '{0}' 1\n".format(song_path))
+                self.process.stdin.write("pausing_keep_force loadfile '/home/pi/music/Music/{0}' 1\n".format(song_path))
                 self.process.stdin.flush()
             except IOError:
                 pass
             else:
                 return
 
-        args = ['mplayer', '-slave', '-quiet', song_path]
+        args = ['mplayer', '-slave', '-quiet', '/home/pi/music/Music/{0}'.format(song_path)]
         self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         with open("/home/pi/var/run/mplayer.pid", 'w') as pid_file:
             pid_file.write(str(self.process.pid))

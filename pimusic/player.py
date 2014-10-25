@@ -1,6 +1,7 @@
 import json
 import re
 import gevent
+import os
 from gevent import subprocess, socket, queue
 from gevent import select
 
@@ -139,7 +140,7 @@ class MPlayerControl(object):
             else:
                 return
 
-        args = ['mplayer', '-slave', '-quiet', self.conf['music_folder'] + song_path]
+        args = ['mplayer', '-slave', '-quiet', os.path.join(self.conf['music_folder'],  song_path)]
         self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         with open(self.conf['player_pid_file'], 'w') as pid_file:
             pid_file.write(str(self.process.pid))

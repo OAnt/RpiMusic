@@ -8,7 +8,7 @@ def output_parser(out_string):
     return dict(zip(["message", "value"], re.split('[:=]', out_string.strip().replace("'", ""), 1)))
 
 class MPlayerControl(object):
-    def __init__(self):
+    def __init__(self, conf):
         self.process = None
         self.message = None
         self.listeners = []
@@ -19,6 +19,7 @@ class MPlayerControl(object):
         self.index = -1
         self.volume = "50"
         self.switch = {"volume": self.set_volume}
+        self.conf = conf
 
     def launch(self, song):
         self.song_list.append(song)
@@ -131,16 +132,16 @@ class MPlayerControl(object):
         song_path = song_path.encode('utf-8')
         if self._active():
             try:
-                self.process.stdin.write("pausing_keep_force loadfile '/home/pi/music/Music/{0}' 1\n".format(song_path))
+                self.process.stdin.write("pausing_keep_force loadfile '/Users/Antoine/music_ln/Music/{0}' 1\n".format(song_path))
                 self.process.stdin.flush()
             except IOError:
                 pass
             else:
                 return
 
-        args = ['mplayer', '-slave', '-quiet', '/home/pi/music/Music/{0}'.format(song_path)]
+        args = ['mplayer', '-slave', '-quiet', self.conf['music_folder'] + song_path]
         self.process = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        with open("/home/pi/var/run/mplayer.pid", 'w') as pid_file:
+        with open(self.conf['player_pid_file'], 'w') as pid_file:
             pid_file.write(str(self.process.pid))
         self.get_metadata()
         self.set_volume(self.volume)

@@ -11,6 +11,16 @@ import gevent
 import pimusic.player
 import conf
 
+def sql_execute(cursor, statement, values):
+    cursor.execute(statement, values)
+    result = cursor.fetchall()
+    return result
+
+def json_response(data):
+    resp = flask.Response(json.dumps(data))
+    resp.headers['content-type'] = 'Application/json'
+    return resp
+
 def pimusic_server(conf, player):
     DATABASE = conf['database']
     app = flask.Flask(__name__)
@@ -23,11 +33,6 @@ def pimusic_server(conf, player):
             mydata.Cursor = mydata.Database.cursor()
         return mydata
 
-    def sql_execute(cursor, statement, values):
-        cursor.execute(statement, values)
-        result = cursor.fetchall()
-        return result
-
     @app.route('/')
     def get_index():
         index = open(os.path.join(conf['static_files'], 'index.html'))
@@ -39,7 +44,8 @@ def pimusic_server(conf, player):
     def api():
         if flask.request.environ.get('wsgi.websocket'):
             ws = flask.request.environ['wsgi.websocket']
-            player.websockets[ws.socket] = ws
+            listener = pimusic.player.ConnectionListener(ws, player.input_queue)
+            player.listeners.add(listener)
             player.get_metadata()
             player.get_song_list()
             while True:
@@ -68,9 +74,7 @@ def pimusic_server(conf, player):
         mydata = local_db()
         statement = 'SELECT id, name FROM artists'
         result = sql_execute(mydata.Cursor, statement, [])
-        resp = flask.Response(json.dumps(result))
-        resp.headers['content-type'] = 'Application/json'
-        return resp
+        return json_response(result)
 
     @app.route('/music/<artist>', methods=['GET'])
     def artist_req(artist):
@@ -78,7 +82,7 @@ def pimusic_server(conf, player):
         if flask.request.method == 'GET':
             statement = 'SELECT albums.id, album, albums.artist_id FROM albums, artists WHERE artists.id=? and albums.artist_id = artists.id'
             result = sql_execute(mydata.Cursor, statement, [artist])
-            return json.dumps(result)
+            return json_response(result)
 
     @app.route('/music/<artist>/<album>', methods=['GET'])
     def album_req(artist, album):
@@ -86,9 +90,7 @@ def pimusic_server(conf, player):
         if flask.request.method == 'GET':
             statement = 'SELECT Songs.id, Song, albums.id, albums.artist_id FROM Songs, albums WHERE Songs.album_id = albums.id and albums.id=? and albums.artist_id=?'
             result = sql_execute(mydata.Cursor, statement, [album, artist])
-            resp = flask.Response(json.dumps(result))
-            resp.headers['content-type'] = 'Application/json'
-            return resp
+            return json_response(result)
 
     @app.route('/music/<artist>/<album>/<song>', methods = ['POST'])
     def song_req(artist, album, song):
@@ -99,8 +101,30 @@ def pimusic_server(conf, player):
             statement = 'SELECT song, path FROM Songs WHERE id=?'
             song_values = sql_execute(mydata.Cursor, statement, [song_id])[0]
             song_details = {"title": song_values[0], "path": song_values[1]}
-            player.launch(song_details)
+            player.launch([song_details])
         return "OK"
+
+    @app.route('/list')
+    def handle_all_list():
+        mydata = local_db()
+        statement = 'SELECT id, name FROM playlist'
+        return json_response(sql_execute(mydata.Cursor, statement, []))
+
+    @app.route('/list/<list_id>')
+    def handle_list(list_id):
+        mydata = local_db()
+        if flask.request.method == 'GET':
+            statement = 'SELECT Songs.id, Songs.Song FROM Songs, playlist, belong WHERE Songs.id=belong.song AND playlist.id=? AND belong.playlist=playlist.id'
+            result = sql_execute(mydata.Cursor, statement, [list_id])
+            return json_response(result)
+        if flask.request.method == 'POST':
+            statement = 'SELECT Songs.Song, Songs.path FROM Songs, playlist, belong WHERE Songs.id=belong.song AND playlist.id=? AND belong.playlist=playlist.id'
+            result = sql_execute(mydata.Cursor, statement, [list_id])
+            songs = [{'title': song[0], 'path':song[1]} for song in result]
+            player.clean()
+            player.next_song()
+            player.launch(songs)
+            return 'OK'
 
     return app
 

@@ -2,12 +2,27 @@
 
 var baseApp = angular.module('baseApp', ['ngRoute', "ngProgress","uiSlider", "ngResource"]);
 
+baseApp.directive('well', function(){
+    return {
+        restrict: 'E',
+        scope: {
+            itemList: '=info',
+            callback: '=callback',
+            cssClass: '=cssClass'
+        },
+        templateUrl: 'static/well.html'
+    }
+});
+
 baseApp.controller("SongSelectionCtrl",['$scope','$http', 'ngProgress', function ($scope, $http, ngProgress) {
     $scope.autoVolumeChangeInProgress = false;
 
     $scope.artists = [];
     $scope.albums = [];
     $scope.songs = [];
+    $scope.lists = [];
+    $scope.cssRow = "col-xs-3 col-sm-3 col-md-3";
+    $scope.showArtist = true;
     $scope.output = null; 
     $scope.metadata = new Object(null);
     $scope.paused = false;
@@ -29,6 +44,32 @@ baseApp.controller("SongSelectionCtrl",['$scope','$http', 'ngProgress', function
         $http.post(url, songDetails);
     }
 
+    $scope.createList = function() {
+        var url = baseUrl + 'list';
+        var song_id_list = [];
+        console.log($scope.songList);
+        for(var i=0; i<$scope.songList.list.length;i++){
+            song_id_list.push($scope.songList.list[i].id);
+        }
+        $http.post(url, {name: 'aList', songs: song_id_list});
+    }
+
+    $scope.getLists = function() {
+        $http.get(baseUrl + 'list').success(function(data){
+            $scope.lists = data;
+        });
+    }
+
+    $scope.getList = function(aList) {
+        $http.post(baseUrl + 'list/' + aList[0]);
+    }
+
+    $scope.getArtists = function() {
+        $http.get(baseUrl + 'music').success(function(data) {
+            $scope.artists = data;
+        });
+    }
+
     $scope.getSongs = function(albumDetails){
         $http.get(baseUrl + 'music/' + albumDetails[2] + '/' + albumDetails[0]).success(function(data){
             $scope.songs = data;
@@ -39,6 +80,16 @@ baseApp.controller("SongSelectionCtrl",['$scope','$http', 'ngProgress', function
         $http.get(baseUrl + 'music/' + artistDetails[0]).success(function(data) {
             $scope.albums = data;
         });
+    }
+
+    $scope.toggleArtists = function(){
+        $scope.showArtist = true;
+        $scope.getArtists();
+    }
+
+    $scope.toggleLists = function(){
+        $scope.showArtist = false;
+        $scope.getLists();
     }
 
     $scope.pause_unpause = function() {
@@ -98,10 +149,7 @@ baseApp.controller("SongSelectionCtrl",['$scope','$http', 'ngProgress', function
     }
 
     var init = function () {
-        $http.get(baseUrl + 'music').success(function(data) {
-            $scope.artists = data;
-        });
-
+        $scope.getArtists();
         ws.onmessage = function(msg) {
             console.log("Received message: %s", msg.data);
             mplayerParse(JSON.parse(msg.data));

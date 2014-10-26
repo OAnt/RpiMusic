@@ -148,7 +148,7 @@ class MPlayerControl(object):
         self._wrapper_stdin("pausing_keep_force get_property pause\n")
 
     def play_song(self, song_path):
-        """Launches gmplayer if not active and play song else do nothing"""
+        """Launches mplayer if not active and play song else do nothing"""
         song_path = song_path.encode('utf-8')
         if self._active():
             try:

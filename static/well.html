@@ -1,0 +1,10 @@
+<div class="cssClass">
+        <input ng-model="itemQuery" class="form-control">
+        <div class="well sidebar-nav scrollbar">
+                <ul class="nav nav-list">
+                        <li ng-repeat="anItem in itemList | filter:itemQuery" >
+                        <a href=""ng-click="callback(anItem)">{{anItem[1]}}</a>
+                        </li>
+                </ul>
+        </div>
+</div>

@@ -82,35 +82,16 @@
 </div>
 <div class="container">
 	<div class="row">
-		<div class="col-xs-3 col-sm-3 col-md-3">
-                        <input ng-model="artistQuery" class="form-control">
-			<div class="well sidebar-nav scrollbar">
-				<ul class="nav nav-list">
-					<li ng-repeat="anArtist in artists | filter:artistQuery" >
-					<a href=""ng-click="getAlbums(anArtist)">{{anArtist[1]}}</a>
-
-					</li>
-				</ul>
-			</div>
-		</div>
-		<div class="col-xs-3 col-sm-3 col-md-3" ng-show="albums">
-			<div class="well sidebar-nav scrollbar">
-				<ul class="nav nav-list">
-					<li ng-repeat="anAlbum in albums">
-					<a href="" ng-click="getSongs(anAlbum)">{{anAlbum[1]}}</a>
-					</li>
-				</ul>
-			</div>
-		</div>
-		<div class="col-xs-3 col-sm-3 col-md-3" ng-show="songs">
-			<div class="well sidebar-nav">
-				<ul class="nav nav-list scrollbar">
-					<li ng-repeat="aSong in songs">
-					<a href="" ng-click="playSong(aSong)">{{aSong[1]}}</a>
-					</li>
-				</ul>
-			</div>
-		</div>
+            <div class="col-xs-3 col-sm-3 col-md-3">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-default" ng-click="toggleArtists()">Artists</button>
+                    <button type="button" class="btn btn-default" ng-click="toggleLists()">Lists</button>
+                </div>
+                <well info="artists" callback="getAlbums" ng-show="showArtist"></well>
+                <well info="lists" callback="getList" ng-show="!showArtist"></well>
+            </div>
+            <well class="col-xs-3 col-sm-3 col-md-3" info="albums" callback="getSongs" ng-show="albums"></well>
+            <well class="col-xs-3 col-sm-3 col-md-3" info="songs" callback="playSong" ng-show="songs"></well>
         <div class="col-xs-3 col-sm-3 col-md-3" ng-show="songList.list">
             <div class="well sidebar-nav">
                 <ul class="nav nav-list scrollbar">
@@ -119,6 +100,7 @@
                     </li>
                 </ul>
             </div>
+            <a href="" ng-click="createList()">Add List</a>
         </div>
 	</div>
 </div>

@@ -2,7 +2,7 @@
 <!doctype html>
 <html lang="en" ng-app="baseApp">
 <head>
-    <title> Home Web App Server </title>
+    <title> Pimusic </title>
     <script src="/static/angular.min.js"></script>
     <script src="/static/angular-route.js"></script>
     <script src="/static/angular-resource.js"></script>
@@ -100,7 +100,9 @@
                     </li>
                 </ul>
             </div>
+            <input type="text" class="form-control" placeholder="list name" ng-model="playList.name">
             <a href="" ng-click="createList()">Add List</a>
+            <a href="" ng-click="updateList()">Update List</a>
         </div>
 	</div>
 </div>

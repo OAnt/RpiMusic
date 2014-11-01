@@ -112,15 +112,10 @@ def pimusic_server(conf, player):
             statement = 'SELECT id, name FROM playlist'
             return json_response(sql_execute(mydata.Cursor, statement, []))
         if flask.request.method == 'POST':
-            try:
-                list_details = json.loads(flask.request.data)
-                song_list = SongList(name=list_details['name'],
-                                     songs=list_details['songs'])
-            except ValueError:
-                return 'Unusable list', 400
-            return song_list.save(mydata.Cursor, mydata.Database)
+            song_list = SongList.from_json(flask.request.data)
+            return json_response(song_list.save(mydata.Cursor, mydata.Database))
 
-    @app.route('/list/<list_id>', methods = ['GET', 'POST'])
+    @app.route('/list/<list_id>', methods = ['GET', 'POST', 'PUT'])
     def handle_list(list_id):
         mydata = local_db()
         if flask.request.method == 'GET':
@@ -135,6 +130,9 @@ def pimusic_server(conf, player):
             player.next_song()
             player.launch(songs)
             return 'OK'
+        if flask.request.method == 'PUT':
+            song_list = SongList.from_json(flask.request.data)
+            return json_response(song_list.update(mydata.Cursor, mydata.Database))
 
     return app
 

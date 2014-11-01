@@ -22,11 +22,13 @@ baseApp.controller("SongSelectionCtrl",['$scope','$http', 'ngProgress', function
     $scope.songs = [];
     $scope.lists = [];
     $scope.cssRow = "col-xs-3 col-sm-3 col-md-3";
+    $scope.listName = "aList"
     $scope.showArtist = true;
     $scope.output = null; 
     $scope.metadata = new Object(null);
     $scope.paused = false;
     $scope.songList = new Object(null);
+    $scope.playList = {id: null, name: null};
     $scope.volume = null;
     var baseUrl = document.URL;
 
@@ -47,11 +49,13 @@ baseApp.controller("SongSelectionCtrl",['$scope','$http', 'ngProgress', function
     $scope.createList = function() {
         var url = baseUrl + 'list';
         var song_id_list = [];
-        console.log($scope.songList);
         for(var i=0; i<$scope.songList.list.length;i++){
             song_id_list.push($scope.songList.list[i].id);
         }
-        $http.post(url, {name: 'aList', songs: song_id_list});
+        $http.post(url, {name: $scope.playList.name, songs: song_id_list}).success(function(data){
+            $scope.playList.id = data.id;
+            $scope.playList.name = data.name;
+        });
     }
 
     $scope.getLists = function() {
@@ -62,6 +66,18 @@ baseApp.controller("SongSelectionCtrl",['$scope','$http', 'ngProgress', function
 
     $scope.getList = function(aList) {
         $http.post(baseUrl + 'list/' + aList[0]);
+        $scope.playList.id = aList[0];
+        $scope.playList.name = aList[1];
+    }
+
+    $scope.updateList = function(){
+        var url = baseUrl + 'list/' + $scope.playList.id;
+        var song_id_list = [];
+        for(var i=0; i<$scope.songList.list.length;i++){
+            song_id_list.push($scope.songList.list[i].id);
+        }
+        console.log($scope.songList);
+        $http.put(url, {id: $scope.playList.id, name: $scope.playList.name, songs: song_id_list});
     }
 
     $scope.getArtists = function() {
